@@ -1,0 +1,6 @@
+train: F:\datasets\train
+val: F:\datasets\val
+
+nc: 5
+names: ['NO_tumor', 'glioma', 'meningioma', 'pituitary', 'space-occupying lesion-']
+

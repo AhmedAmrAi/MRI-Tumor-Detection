@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Object Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .upload-section {
+            margin-bottom: 20px;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .results img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .results li {
+            background: #f4f4f4;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YOLO Object Detection</h1>
+        <div class="upload-section">
+            <input type="file" id="imageInput" accept="image/*">
+            <button onclick="uploadImage()">Upload and Detect</button>
+        </div>
+        <div class="results" id="resultsSection" style="display: none;">
+            <h2>Detection Results</h2>
+            <img id="detectedImage" src="" alt="Detected Image">
+            <ul id="labelsList"></ul>
+        </div>
+    </div>
+
+    <script>
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const resultsSection = document.getElementById('resultsSection');
+            const detectedImage = document.getElementById('detectedImage');
+            const labelsList = document.getElementById('labelsList');
+
+            if (fileInput.files.length === 0) {
+                alert("Please select an image file.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Send the image to the FastAPI backend for detection
+                const imageResponse = await fetch('http://127.0.0.1:8000/predictions', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!imageResponse.ok) {
+                    throw new Error('Failed to process the image.');
+                }
+
+                // Display the detected image
+                detectedImage.src = URL.createObjectURL(await imageResponse.blob());
+
+                // Send the image to the FastAPI backend for labels
+                const labelsResponse = await fetch('http://127.0.0.1:8000/labels', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!labelsResponse.ok) {
+                    throw new Error('Failed to get labels.');
+                }
+
+                const labelsData = await labelsResponse.json();
+
+                // Display the labels and confidence scores
+                labelsList.innerHTML = '';
+                labelsData.labels.forEach(label => {
+                    const li = document.createElement('li');
+                    li.textContent = `${label.label} (Confidence: ${(label.confidence * 100).toFixed(2)}%)`;
+                    labelsList.appendChild(li);
+                });
+
+                // Show the results section
+                resultsSection.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while processing the image.');
+            }
+        }
+    </script>
+</body>
+</html>
