@@ -1,4 +1,4 @@
-🧠 Tumor Cancer Detection
+🧠 MRI Tumor Cancer Detection
 
 A deep learning-based project to automatically detect and classify brain tumors from MRI images using computer vision and machine learning techniques.
 
